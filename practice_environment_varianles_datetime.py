@@ -9,9 +9,6 @@ event = {
     "body": '{"metrics": [{"server": "web-01", "cpu": 92, "memory": 75, "recorded_at": "2026-03-17 10:00:00"}, {"server": "web-02", "cpu": 45, "memory": 85, "recorded_at": "2026-03-15 08:00:00"}, {"server": "db-01", "cpu": 78, "memory": 95, "recorded_at": "2026-03-09 12:00:00"}, {"server": "db-02", "cpu": 30, "memory": 40, "recorded_at": "2026-03-17 09:00:00"}]}'
 }
 
-
-# Write a full Lambda handler that:
-
 # Reads all 3 env vars
 # Filters metrics recorded within RETENTION_DAYS
 # From those, flags servers where cpu OR memory exceeds ALERT_THRESHOLD

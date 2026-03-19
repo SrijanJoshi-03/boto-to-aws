@@ -1,5 +1,3 @@
-#Exercise 3 — boto3 S3:
-# Write a script that:
 
 # Creates a bucket called aizen-logs-{today's date} using datetime e.g. aizen-logs-2026-03-17
 # Uploads 3 log files with put_object:

@@ -7,8 +7,6 @@ os.environ["THRESHOLD"] = "75"
 event = {
     "body": '{"servers": [{"id": "s1", "name": "web-01", "cpu": 85, "memory": 60}, {"id": "s2", "name": "web-02", "cpu": 45, "memory": 90}, {"id": "s3", "name": "db-01", "cpu": 92, "memory": 88}, {"id": "s4", "name": "db-02", "cpu": 30, "memory": 45}]}'
  }
-#Write a full Lambda handler that:
-
 # Reads ENVIRONMENT and THRESHOLD from env vars
 # Flags servers where either cpu or memory is above THRESHOLD
 # Returns flagged server names and which metric triggered it e.g. {"web-01": "cpu", "web-02": "memory", "db-01": "cpu"}
