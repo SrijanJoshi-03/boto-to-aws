@@ -2,6 +2,7 @@ import boto3,json
 from datetime import datetime,timezone
 from decimal import Decimal
 from boto3.dynamodb.conditions import Key
+from boto3.dynamodb.conditions import Attr
 
 items = [
     {'image_id': 'dog.jpg', 'timestamp': '2026-03-19T08:00:00', 'confidence': Decimal('98.5'), 'labels': ['dog', 'animal', 'pet'], 'status': 'processed'},
@@ -46,6 +47,45 @@ except Exception as e:
 table = dynamo_db.Table(table_name)
 
 try:
+    responese = table.scan(
+        FilterExpression=Attr('confidence').gt(Decimal('95.0'))
+    )
+    items = responese.get('Items', [])
+    for item in items:
+        print(f"Image ID: {item.get('image_id', '')}, confidence : {item.get('confidence','')}") 
+    print(f"Found {len([item for item in items if item.get('confidence', 0) > Decimal('95.0')])} images with confidence above 95")
+except Exception as e:
+    print(str(e))
+
+
+try:
+    table.update_item(
+        Key={
+            'image_id': 'dog.jpg',
+            'timeStamp': '2026-03-19T08:00:00'
+        },
+        UpdateExpression = 'SET #st = :s, #cf= :new_confidence',
+        ExpressionAttributeNames={
+            '#st': 'status',
+            '#cf': 'confidence'
+        },
+        ExpressionAttributeValues={
+            ':s': 'reviewed',
+            ':new_confidence': Decimal('99.0')
+        }
+    )
+    print('Item updated successfully')
+    response= table.query(
+        KeyConditionExpression= Key('image_id').eq('dog.jpg') & Key('timeStamp').eq('2026-03-19T08:00:00')
+    )
+    items = response.get('Items', [])
+    for item in items:
+        print(f"Time Stamp: {item.get('timeStamp', '')}, Status: {item.get('status', '')}, Confidence: {item.get('confidence', '')}")
+
+except Exception as e:
+    print(str(e))   
+
+try:
     response = table.query(
     KeyConditionExpression=Key('image_id').eq('dog.jpg') & Key('timeStamp').between('2026-03-19T07:00:00','2026-03-19T08:30:00')
     )
@@ -64,3 +104,19 @@ except Exception as e:
 table.delete()
 table.wait_until_not_exists()
 print('table deleted')
+
+
+try:
+    table.delete_item(
+        Key= {
+            'image_id':'dog.jpg',
+            'timeStamp': '2026-03-19T08:00:00'
+        }
+    )
+    print('item deleted successfully')
+    response = table.scan()
+    items = response.get("Items",[])
+    for item in items:
+        print(f"Image ID: {item.get('image_id', '')}, Time Stamp: {item.get('timeStamp', '')}")
+except Exception as e:
+    print(str(e))   
