@@ -11,6 +11,12 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from boto3.dynamodb.conditions import Key
 
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Decimal):
+            return float(obj)
+        return super().default(obj)
+
 dynamo_db = boto3.resource('dynamodb')
 table=dynamo_db.Table('practiceTable-001')
 
@@ -57,12 +63,15 @@ def lambda_handler(event, context):
                     ':s': 'reprocessed',
                 }
             )
-            return{
-                    'statusCode': 200,
-                    'body':{
-                        'message': f'image {uploaded_image_in_s3_bucket} has been process already',
-                        'data': rekognition_result
-                    }
+            return {
+                'statusCode': 200,
+                'body': json.dumps({
+                    'message': f'image {uploaded_image_in_s3_bucket} has been processed already',
+                    'data': {
+                        'labels': rekognition_result.get('labels', []),
+                        'confidence': rekognition_result.get('confidence', 0)
+                        }
+                    }, cls=DecimalEncoder)
                 }
         else:
             table.put_item(Item={
@@ -72,15 +81,16 @@ def lambda_handler(event, context):
                 'labels': rekognition_result.get('labels', [] ),
                 'status': 'processed'
             })
-            return{
+            return {
                 'statusCode': 200,
-                'body': {
-                    'message': f'image {uploaded_image_in_s3_bucket} processed and saved to dynamodb',
-                    'data': rekognition_result
-                }
-            }
-
-
+                'body': json.dumps({
+                    'message': f'image {uploaded_image_in_s3_bucket} has been uploaded.',
+                    'data': {
+                        'labels': rekognition_result.get('labels', []),
+                        'confidence': rekognition_result.get('confidence', 0)
+                            }
+                        }, cls=DecimalEncoder)
+                    }
     except Exception as e:
         print(str(e))
         return {
